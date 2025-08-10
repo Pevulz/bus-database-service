@@ -8,9 +8,9 @@ import java.util.Optional;
 
 public interface BusRepository extends MongoRepository<Bus, String> {
     List<Bus> findByCompany(String company);
-    Optional<Bus> findByCompanyAndBusNumber(String company, String busNumber);
+    Optional<Bus> findByCompanyAndBusTag(String company, String busTag);
 
-    boolean existsByCompanyAndBusNumber(String company, String busNumber);
+    boolean existsByCompanyAndBusTag(String company, String busTag);
 
 
 }

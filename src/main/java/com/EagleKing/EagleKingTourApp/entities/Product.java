@@ -18,6 +18,5 @@ public class Product {
     private int quantity;
     private String unit;
     private String type;
-
-
+    private int numberSold;
 }

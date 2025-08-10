@@ -23,25 +23,25 @@ public class BusService {
         return busRepository.findById(id).orElse(null);
     }
 
-    public Bus createBus(String company, String busNumber) {
+    public Bus createBus(Bus bus) {
         //1. Validate inputs
-        if(company.isEmpty() || busNumber.isEmpty()) {
+        if(bus.getCompany().isEmpty() || bus.getBusTag().isEmpty()) {
             throw new IllegalArgumentException("Company or BusNumber is invalid.");
         }
 
         //2. Check if bus exist in db
-        boolean exist = busRepository.existsByCompanyAndBusNumber(company, busNumber);
+        boolean exist = busRepository.existsByCompanyAndBusTag( bus.getCompany(), bus.getBusTag());
         if(exist) {
-            throw new IllegalArgumentException("Bus with company " + company + " and number " + busNumber + " already exists");
+            throw new IllegalArgumentException("Bus with company " +  bus.getCompany() + " and number " + bus.getBusTag() + " already exists");
         }
 
         //2. Add to db if new
-        Bus bus = new Bus();
-        bus.setCompany(company);
-        bus.setBusTag(busNumber);
+        Bus newBus = new Bus();
+        bus.setCompany( bus.getCompany());
+        bus.setBusTag(bus.getBusTag());
         bus.setBusLogs(new ArrayList<>());
-        bus.setImagePath("");
-        return busRepository.save(bus);
+        bus.setImagePath(bus.getImagePath());
+        return busRepository.save(newBus);
     }
 
     public Bus updateBus(String busId, Bus updatedBusDetails) {
@@ -59,13 +59,13 @@ public class BusService {
 
         // 3. Check for duplicate company/busNumber combination only if those fields are changing
         String newCompany = updatedBusDetails.getCompany();
-        String newBusNumber = updatedBusDetails.getBusTag();
+        String newBusTag = updatedBusDetails.getBusTag();
 
-        if (newCompany != null && newBusNumber != null &&
-                (!newCompany.equals(existingBus.getCompany()) || !newBusNumber.equals(existingBus.getBusTag()))) {
-            boolean busNumberTaken = busRepository.existsByCompanyAndBusNumber(newCompany, newBusNumber);
+        if (newCompany != null && newBusTag != null &&
+                (!newCompany.equals(existingBus.getCompany()) || !newBusTag.equals(existingBus.getBusTag()))) {
+            boolean busNumberTaken = busRepository.existsByCompanyAndBusTag(newCompany, newBusTag);
             if (busNumberTaken) {
-                throw new IllegalArgumentException(newCompany + " has " + newBusNumber + " already. Please choose a different number.");
+                throw new IllegalArgumentException(newCompany + " has " + newBusTag + " already. Please choose a different number.");
             }
         }
 
@@ -74,8 +74,8 @@ public class BusService {
             existingBus.setCompany(newCompany);
         }
 
-        if (newBusNumber != null && !newBusNumber.isEmpty()) {
-            existingBus.setBusTag(newBusNumber);
+        if (newBusTag != null && !newBusTag.isEmpty()) {
+            existingBus.setBusTag(newBusTag);
         }
 
         // Handle image path updates

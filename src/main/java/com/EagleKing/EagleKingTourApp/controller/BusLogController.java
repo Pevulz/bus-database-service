@@ -20,18 +20,18 @@ public class BusLogController {
     @Autowired
     private BusLogService busLogService;
 
-    @PostMapping("/{id}")
-    public ResponseEntity<?> createBusLog(
-            @PathVariable("id") String busId,
-            @RequestBody List<Maintenance> maintenances, List<Product> products) {
-
-        try {
-            BusLog createdLog = busLogService.createBusLog(busId, maintenances, products);
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdLog);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
+//    @PostMapping("/{id}")
+//    public ResponseEntity<?> createBusLog(
+//            @PathVariable("id") String busId,
+//            @RequestBody List<Maintenance> maintenances, List<Product> products) {
+//
+//        try {
+//            BusLog createdLog = busLogService.createBusLog(busId, maintenances, products);
+//            return ResponseEntity.status(HttpStatus.CREATED).body(createdLog);
+//        } catch (IllegalArgumentException e) {
+//            return ResponseEntity.badRequest().body(e.getMessage());
+//        }
+//    }
 
     @PutMapping("/{id}/paid")
     public ResponseEntity<?> markAsPaid(@PathVariable("id") String busLogId) {

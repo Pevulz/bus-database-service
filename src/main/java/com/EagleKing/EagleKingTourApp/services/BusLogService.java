@@ -49,14 +49,16 @@ public class BusLogService {
         if (existingLog != null) {
             // Handle existing log - update maintenances
             Set<String> existingTypes = existingLog.getMaintenances().stream()
-                    .map(Maintenance::getType)
+                    .map(BusLog.MaintenanceSnapshot::getType)
                     .collect(Collectors.toSet());
 
-            List<Maintenance> newMaintenances = maintenances.stream()
+            // Convert new maintenances to snapshots and filter out duplicates
+            List<BusLog.MaintenanceSnapshot> newMaintenanceSnapshots = maintenances.stream()
                     .filter(m -> !existingTypes.contains(m.getType()))
+                    .map(BusLog.MaintenanceSnapshot::new)  // Convert to snapshot
                     .collect(Collectors.toList());
 
-            existingLog.getMaintenances().addAll(newMaintenances);
+            existingLog.getMaintenances().addAll(newMaintenanceSnapshots);
 
             // Handle parts using the map
             for (Map.Entry<Product, Integer> entry : productQuantityMap.entrySet()) {
@@ -80,7 +82,7 @@ public class BusLogService {
 
             // Recalculate total cost
             double maintenanceCost = existingLog.getMaintenances().stream()
-                    .mapToDouble(Maintenance::getCost)
+                    .mapToDouble(BusLog.MaintenanceSnapshot::getCostAtTime)
                     .sum();
 
             double partsCost = existingLog.getParts().stream()
@@ -98,7 +100,13 @@ public class BusLogService {
             // Create new log
             BusLog busLog = new BusLog();
             busLog.setBusId(busId);
-            busLog.setMaintenances(maintenances);
+
+            // Convert maintenances to snapshots
+            List<BusLog.MaintenanceSnapshot> maintenanceSnapshots = maintenances.stream()
+                    .map(BusLog.MaintenanceSnapshot::new)
+                    .collect(Collectors.toList());
+            busLog.setMaintenances(maintenanceSnapshots);
+
             busLog.setDate(today);
             busLog.setPaid(false);
 
@@ -109,8 +117,8 @@ public class BusLogService {
             busLog.setParts(partSnapshots);
 
             // Calculate total cost
-            double maintenanceCost = maintenances.stream()
-                    .mapToDouble(Maintenance::getCost)
+            double maintenanceCost = maintenanceSnapshots.stream()
+                    .mapToDouble(BusLog.MaintenanceSnapshot::getCostAtTime)
                     .sum();
 
             double partsCost = partSnapshots.stream()

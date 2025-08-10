@@ -25,7 +25,7 @@ public class BusController {
     @PostMapping()
     public ResponseEntity<?> createBus(@RequestBody Bus bus) {
         try {
-            Bus createdBus = busService.createBus(bus.getCompany(), bus.getBusTag());
+            Bus createdBus = busService.createBus(bus);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdBus);
         } catch (IllegalArgumentException e) {
             Map<String, String> error = new HashMap<>();
