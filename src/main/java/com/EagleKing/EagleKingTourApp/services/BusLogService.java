@@ -1,6 +1,7 @@
 package com.EagleKing.EagleKingTourApp.services;
 
 
+import com.EagleKing.EagleKingTourApp.dto.CreateBusLogRequestDTO;
 import com.EagleKing.EagleKingTourApp.entities.Bus;
 import com.EagleKing.EagleKingTourApp.entities.BusLog;
 import com.EagleKing.EagleKingTourApp.entities.Maintenance;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.swing.text.html.Option;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +29,31 @@ public class BusLogService {
 
     public List<BusLog> findAllBusLog() {
         return busLogRepository.findAll();
+    }
+
+    public BusLog createBusLog(CreateBusLogRequestDTO request) {
+        //validate request
+        validateRequest(request);
+
+        //check if bus exist
+        Optional<Bus> existingBus = busRepository.findById(request.getBusId());
+        if (existingBus.isEmpty()) {
+            throw new IllegalArgumentException("Bus not found with ID: " + request.getBusId());
+        }
+
+        //get logs of the bus
+        //check if date exist
+        List<BusLog> existingBusLog = existingBus.get().getBusLogs();
+        Optional<BusLog> matchingLog = existingBusLog.stream().filter(log -> log.getDate().equals(request.getDate())).findFirst();
+
+        //add to log if match
+        if(matchingLog.isPresent()) {
+            BusLog updatingLog = matchingLog.get();
+            BusLog.MaintenanceSnapshot maintenance = new BusLog.MaintenanceSnapshot()
+        }
+
+
+
     }
 
     public BusLog createBusLog(String busId, List<Maintenance> maintenances, Map<Product, Integer> productQuantityMap) {
@@ -151,5 +178,33 @@ public class BusLogService {
 
         busLog.setPaid(true);
         return busLogRepository.save(busLog);
+    }
+
+    private double calculateTotalCost(BusLog busLog) {
+        double maintenanceCost = busLog.getMaintenances().stream()
+                .mapToDouble(BusLog.MaintenanceSnapshot::getCostAtTime)
+                .sum();
+
+        double partsCost = busLog.getParts().stream()
+                .mapToDouble(p -> p.getPriceAtTime() * p.getQuantity())
+                .sum();
+
+        return maintenanceCost + partsCost;
+    }
+
+    private void validateRequest(CreateBusLogRequestDTO request) {
+        if (request.getBusId() == null || request.getBusId().trim().isEmpty()) {
+            throw new IllegalArgumentException("Bus ID is required");
+        }
+
+        if (request.getDate() == null) {
+            throw new IllegalArgumentException("Date is required");
+        }
+
+        // Check if at least one maintenance or part is provided
+        if ((request.getMaintenances() == null || request.getMaintenances().isEmpty()) &&
+                (request.getParts() == null || request.getParts().isEmpty())) {
+            throw new IllegalArgumentException("At least one maintenance or part must be provided");
+        }
     }
 }
